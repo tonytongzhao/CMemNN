@@ -130,7 +130,7 @@ def get_train_instances(train, upass, ipass, user2item, item2user,user2user, ite
     return user_input, item_input, gp_user_input, gp_item_input, labels, weights
 
 if __name__ == '__main__':
-    dataset_name = "home.82"#"pinterest-20"
+    dataset_name = "ml-1m.82"#"pinterest-20"
     print dataset_name
     mf_dim =32   #embedding size
     reg_mf = 0
@@ -143,27 +143,9 @@ if __name__ == '__main__':
     batch_size = 128
     layers=int(layers)
     verbose = 1
-    sims="common"
+    sims=None#"common"
     print sims
     enable_dropout = False
-    if (len(sys.argv) > 10):#3
-        dataset_name = sys.argv[1]
-        mf_dim = int(sys.argv[2])
-        layers = eval(sys.argv[3])
-        reg_layers = eval(sys.argv[4])
-        reg_mf = float(sys.argv[5])
-        num_negatives = int(sys.argv[6])
-        weight_negatives = float(sys.argv[7])
-        learner = sys.argv[8]
-        learning_rate = float(sys.argv[9])
-        num_epochs = int(sys.argv[10])
-        batch_size = int(sys.argv[11])
-        verbose = int(sys.argv[12])
-        if (sys.argv[13] == 'true' or sys.argv[13] == 'True'):
-            enable_dropout = True
-        if len(sys.argv) > 14:
-            mf_pretrain = sys.argv[14]
-            mlp_pretrain = sys.argv[15]
 
     topKs = range(1,11)
     evaluation_threads = 1#mp.cpu_count()
@@ -211,17 +193,11 @@ if __name__ == '__main__':
         model.compile(optimizer=Adam(lr=learning_rate), loss='binary_crossentropy')
     else:
         model.compile(optimizer=SGD(lr=learning_rate), loss='binary_crossentropy')
-    
+
 	# Init performance
     precisions=[0 for _ in xrange(len(topKs))]
     recalls=[0 for _ in xrange(len(topKs))]
     ndcgs=[0 for _ in xrange(len(topKs))]
-    (precision, recall, ndcgss) = evaluate_model(dataset, model, upass, ipass, user2item, item2user, testRatings, testNegatives, topKs[-1], evaluation_threads)
-    for i in xrange(len(topKs)):
-        prec, rec, ndcg = np.array(precision[i]).mean(), np.array(recall[i]).mean(), np.array(ndcgss[i]).mean()
-        precisions[i]=prec
-        recalls[i]=rec
-        ndcgs[i]=ndcg
     print 'Start training'
     # Training model
     for epoch in xrange(num_epochs):
@@ -241,9 +217,9 @@ if __name__ == '__main__':
             (precision, recall, ndcgss) = evaluate_model(dataset, model, upass, ipass, user2item, item2user, user2user, item2item, testRatings, testNegatives, topKs[-1], evaluation_threads, sims)
             for i in xrange(len(topKs)):
                 prec, rec, ndcg = np.array(precision[i]).mean(), np.array(recall[i]).mean(), np.array(ndcgss[i]).mean()
-				precisions[i]=prec
-				recalls[i]=rec
-				ndcgs[i]=ndcg
+                precisions[i]=prec
+    		recalls[i]=rec
+                ndcgs[i]=ndcg
             logger.info("CMemNN no cross(%s) with %s Dropout %s: upass=%d, ipass=%d, mf_dim=%d, layers=%d, regs=%f, reg_mf=%.1e, num_negatives=%d, weight_negatives=%.2f, learning_rate=%.1e, num_epochs=%d, batch_size=%d, verbose=%d"%(dataset_name, str(sims), enable_dropout, upass, ipass, mf_dim, layers, reg_layers, reg_mf, num_negatives, weight_negatives, learning_rate, num_epochs, batch_size, verbose))
             logger.info(precisions)
             logger.info(recalls)

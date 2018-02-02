@@ -146,7 +146,7 @@ if __name__ == '__main__':
     batch_size = 128
     layers=3
     verbose = 1
-    sims="common"
+    sims=None#"common"
     print sims
     enable_dropout = False
 
@@ -197,17 +197,11 @@ if __name__ == '__main__':
         model.compile(optimizer=Adam(lr=learning_rate), loss='binary_crossentropy')
     else:
         model.compile(optimizer=SGD(lr=learning_rate), loss='binary_crossentropy')
-    
+
 	# Init performance
     precisions=[0 for _ in xrange(len(topKs))]
     recalls=[0 for _ in xrange(len(topKs))]
     ndcgs=[0 for _ in xrange(len(topKs))]
-    (precision, recall, ndcgss) = evaluate_model(dataset, model, upass, ipass, user2item, item2user, testRatings, testNegatives, topKs[-1], evaluation_threads)
-    for i in xrange(len(topKs)):
-        prec, rec, ndcg = np.array(precision[i]).mean(), np.array(recall[i]).mean(), np.array(ndcgss[i]).mean()
-        precisions[i]=prec
-        recalls[i]=rec
-        ndcgs[i]=ndcg
     print 'Start training'
     # Training model
     for epoch in xrange(num_epochs):
@@ -227,9 +221,9 @@ if __name__ == '__main__':
             (precision, recall, ndcgss) = evaluate_model(dataset, model, upass, ipass, user2item, item2user, user2user, item2item, testRatings, testNegatives, topKs[-1], evaluation_threads, sims)
             for i in xrange(len(topKs)):
                 prec, rec, ndcg = np.array(precision[i]).mean(), np.array(recall[i]).mean(), np.array(ndcgss[i]).mean()
-				precisions[i] = prec
-				ndcgs[i] = ndcg
-				recalls[i]=rec
+                precisions[i] = prec
+                ndcgs[i] = ndcg
+                recalls[i]=rec
             logger.info("CMemNN cross(%s) with sim Dropout %s: upass=%d, ipass=%d, mf_dim=%d, layers=%d, regs=%f, reg_mf=%.1e, num_negatives=%d, weight_negatives=%.2f, learning_rate=%.1e, num_epochs=%d, batch_size=%d, verbose=%d"%(dataset_name, enable_dropout, upass, ipass, mf_dim, layers, reg_layers, reg_mf, num_negatives, weight_negatives, learning_rate, num_epochs, batch_size, verbose))
             logger.info(precisions)
             logger.info(recalls)

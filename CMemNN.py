@@ -94,10 +94,10 @@ def get_model(num_users, num_items, upass, ipass, mf_dim=10, layers=1, reg_layer
     gp_vector = keras.layers.Multiply()([mf_user_latent, gp_item_latent]) # element-wise multiply
 
     predict_vector = keras.layers.Concatenate()([mf_vector, gp_vector])
-	'''
+    '''
     if enable_dropout:
         predict_vector = Dropout(0.5)(predict_vector)
-	'''
+    '''
     # Final prediction layer
     prediction = Dense(1, kernel_initializer='glorot_uniform', activation='sigmoid', name = "prediction")(predict_vector)
 
@@ -192,17 +192,11 @@ if __name__ == '__main__':
     else:
         print 'sgd'
         model.compile(optimizer=SGD(lr=learning_rate), loss='binary_crossentropy')
-    
+
 	# Init performance
     precisions=[0 for _ in xrange(len(topKs))]
     recalls=[0 for _ in xrange(len(topKs))]
     ndcgs=[0 for _ in xrange(len(topKs))]
-    (precision, recall, ndcgss) = evaluate_model(dataset, model, upass, ipass, user2item, item2user, None, None, testRatings, testNegatives, topKs[-1], evaluation_threads, None)
-    for i in xrange(len(topKs)):
-        prec, rec, ndcg = np.array(precision[i]).mean(), np.array(recall[i]).mean(), np.array(ndcgss[i]).mean()
-        precisions[i]=prec
-        recalls[i]=rec
-        ndcgs[i]=ndcg
     # Training model
     for epoch in xrange(num_epochs):
         t1 = time()
@@ -220,9 +214,9 @@ if __name__ == '__main__':
             (precision, recall, ndcgss) = evaluate_model(dataset, model, upass, ipass, user2item, item2user, None, None, testRatings, testNegatives, topKs[-1], evaluation_threads, None)
             for i in xrange(len(topKs)):
                 prec, rec, ndcg = np.array(precision[i]).mean(), np.array(recall[i]).mean(), np.array(ndcgss[i]).mean()
-				precisions[i] = prec
-				ndcgs[i] = ndcg
-				recalls[i]=rec
+                precisions[i] = prec
+                ndcgs[i] = ndcg
+                recalls[i]=rec
             logger.info("CMemNN(%s) Dropout %s: upass=%d, ipass=%d, mf_dim=%d, layers=%d, regs=%f, reg_mf=%.1e, num_negatives=%d, weight_negatives=%.2f, learning_rate=%.1e, num_epochs=%d, batch_size=%d, verbose=%d"%(dataset_name, enable_dropout, upass, ipass, mf_dim, layers, reg_layers, reg_mf, num_negatives, weight_negatives, learning_rate, num_epochs, batch_size, verbose))
             logger.info(precisions)
             logger.info(recalls)
